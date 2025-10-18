@@ -6,19 +6,28 @@
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SafeCircle uses your location to show your live position and ensure you stay within your safety zone."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        
         "backgroundColor": "#ffffff"
       },
-      "package": "com.safecircle.app"
+      "package": "com.safecircle.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      "expo-location"
+    ],
     "extra": {
       "eas": {
         "projectId": "1234"
