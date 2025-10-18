@@ -15,14 +15,24 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "SafeCircle needs location access to track your safety and notify caregivers when you leave safe zones.",
+        "NSLocationWhenInUseUsageDescription": "SafeCircle needs location access to track your safety and notify caregivers when you leave safe zones.",
+        "NSLocationAlwaysUsageDescription": "SafeCircle needs continuous location access to provide safety monitoring even when the app is in the background."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.safecircle.app"
+      "package": "com.safecircle.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/logo.png"
