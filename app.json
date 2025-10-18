@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "SafeCircle",
+    "slug": "SafeCircle",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icons/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.safecircle.app"
+    },
+    "web": {
+      "favicon": "./assets/icons/logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    }
+  }
+}
