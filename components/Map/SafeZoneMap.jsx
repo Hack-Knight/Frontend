@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import NotificationCard from '../Alerts/NotificationCard';
 import locationService from '../../services/locationService';
-
+//commit
 const SafeZoneMap = ({ 
   userLocation, 
   safeZoneCenter, 
