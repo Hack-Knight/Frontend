@@ -20,10 +20,10 @@ import PeopleNav from "./components/Navigation/People";
 import VoiceNav from "./components/Navigation/Voice";
 
 // ---- Your screens
-import HomeScreen from "./Screens/HomeScreen";
-import MapScreen from "./Screens/MapScreen";
-import PeopleScreen from "./Screens/PeopleScreen";
-import VoiceScreen from "./Screens/VoiceScreen";
+import HomeScreen from "./components/Screens/HomeScreen";
+import MapScreen from "./components/Screens/MapScreen";
+import PeopleScreen from "./components/Screens/PeopleScreen";
+import VoiceScreen from "./components/Screens/VoiceScreen";
 
 // If you don't have these yet, create simple placeholders:
 // export default function HomeScreen(){ return <View><Text>Home</Text></View> }
