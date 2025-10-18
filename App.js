@@ -8,10 +8,6 @@ import {
   StatusBar,
 } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-} from "@react-navigation/drawer";
 
 // ---- Your custom nav icon components (clickable + navigate themselves)
 import HomeNav from "./components/Navigation/Home";
@@ -28,13 +24,11 @@ import VoiceScreen from "./components/Screens/VoiceScreen";
 // If you don't have these yet, create simple placeholders:
 // export default function HomeScreen(){ return <View><Text>Home</Text></View> }
 
-const Drawer = createDrawerNavigator();
-
 function CustomDrawerContent(props) {
   // You can still access navigation via props.navigation, but
   // your icon components already navigate themselves via useNavigation()
   return (
-    <DrawerContentScrollView
+    <ScrollView
       {...props}
       contentContainerStyle={styles.drawerScroll}
     >
@@ -46,7 +40,7 @@ function CustomDrawerContent(props) {
           <VoiceNav />
         </View>
       </SafeAreaView>
-    </DrawerContentScrollView>
+    </ScrollView>
   );
 }
 

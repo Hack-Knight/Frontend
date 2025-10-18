@@ -11,7 +11,7 @@ export default function Voice() {
       onPress={() => navigation.navigate("Voice")}
     >
       <Image
-        source={require("../../assets/icons/voice.png")}
+        source={require("../../assets/icons/mic.png")}
         style={styles.icon}
         resizeMode="contain"
       />
