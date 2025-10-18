@@ -1,3 +1,4 @@
+// components/Screens/RoleSelectScreen.js
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
@@ -9,14 +10,14 @@ export default function RoleSelectScreen({ onSelectRole }) {
 
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "#C084FC" }]}
-        onPress={onSelectRole}
+        onPress={() => onSelectRole("caregiver")}
       >
         <Text style={styles.btnText}>CAREGIVER</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "#60A5FA" }]}
-        onPress={onSelectRole}
+        onPress={() => onSelectRole("user")}
       >
         <Text style={styles.btnText}>USER</Text>
       </TouchableOpacity>
