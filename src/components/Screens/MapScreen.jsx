@@ -1,163 +1,227 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Circle, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './MapScreen.css';
+// src/components/Screens/MapScreen.jsx
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+import {
+  GoogleMap,
+  Marker,
+  Circle,
+  useLoadScript,
+  DirectionsService,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
+import "./MapScreen.css";
 
-// Fix for default markers in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Local storage “DB” services (unchanged)
+import { getCurrentUser } from "../../services/localAuth";
+import { getZone, setZone, deleteZone } from "../../services/localZones";
+import { getLocation, saveLocation } from "../../services/localLocation";
+import { getPairForUser } from "../../services/localPairing";
 
-// Custom icon for user location
-const userLocationIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// ---- helpers
+const DEFAULT_CENTER = { lat: 40.7128, lng: -74.006 };
+const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
 
-// Custom icon for safe zone center
-const safeZoneIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+const haversineM = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const dφ = ((lat2 - lat1) * Math.PI) / 180;
+  const dλ = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(dλ / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
-const MapScreen = () => {
-  const [userLocation, setUserLocation] = useState(null);
-  const [safeZones, setSafeZones] = useState([
-    {
-      id: 1,
-      name: 'Home',
-      latitude: 40.7128,
-      longitude: -74.0060,
-      radius: 100
-    },
-    {
-      id: 2,
-      name: 'Work',
-      latitude: 40.7589,
-      longitude: -73.9851,
-      radius: 150
-    }
-  ]);
-  const [showAddZone, setShowAddZone] = useState(false);
-  const [newZone, setNewZone] = useState({
-    name: '',
-    latitude: '',
-    longitude: '',
-    radius: 100
+export default function MapScreen() {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: ["places"], // keep minimal
   });
-  const [alert, setAlert] = useState(null);
 
-  // Default map center (New York)
-  const defaultCenter = [40.7128, -74.0060];
+  // who am I?
+  const me = getCurrentUser(); // { id, name, role }
+  const isCaregiver = me?.role === "caregiver";
 
+  // pairing
+  const pair = getPairForUser(me?.id); // { patientId, caregiverId } | null
+  const patientId = isCaregiver ? pair?.patientId : me?.id;
+  const caregiverId = isCaregiver ? me?.id : pair?.caregiverId; // eslint quiet; kept for parity
+
+  // my position
+  const [myLoc, setMyLoc] = useState(null); // {latitude, longitude, accuracy}
+  const [geoError, setGeoError] = useState(null);
+
+  // patient position
+  const [patientLoc, setPatientLoc] = useState(() =>
+    patientId ? getLocation(patientId) : null
+  );
+
+  // safe zone (1 per patient)
+  const [zone, setZoneState] = useState(() =>
+    patientId ? getZone(patientId) : null
+  ); // {latitude, longitude, radius, name}
+  const [status, setStatus] = useState(null);
+
+  // map & directions
+  const mapRef = useRef(null);
+  const [directionsReq, setDirectionsReq] = useState(null);
+  const [directionsRes, setDirectionsRes] = useState(null);
+
+  // show helper hint if caregiver and no zone yet
   useEffect(() => {
-    // Get user's current location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          };
-          setUserLocation(location);
-          checkSafeZoneStatus(location);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setAlert({
-            type: 'error',
-            message: 'Unable to get your location. Please enable location services.'
-          });
-        }
-      );
+    if (isCaregiver && patientId && !zone) {
+      setStatus({
+        type: "info",
+        message:
+          "Long-press (right-click) anywhere on the map to set the Safe Zone center, then use the slider to adjust its radius.",
+      });
     }
-  }, []);
+  }, [isCaregiver, patientId, zone]);
 
-  // Calculate distance between two points
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
+  // watch my location and persist
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      setGeoError("Geolocation is not supported by this browser.");
+      return;
+    }
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        const coords = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        };
+        setMyLoc(coords);
+        if (me?.id) saveLocation(me.id, coords);
+      },
+      (err) => setGeoError(err.message || "Unable to get location."),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [me?.id]);
 
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  // poll patient location from local store (simple sync)
+  useEffect(() => {
+    if (!patientId) return;
+    const t = setInterval(() => {
+      const loc = getLocation(patientId);
+      setPatientLoc(loc || null);
+    }, 1500);
+    return () => clearInterval(t);
+  }, [patientId]);
 
-    return R * c; // Distance in meters
-  };
+  // center once on my location
+  useEffect(() => {
+    if (!mapRef.current || !myLoc) return;
+    mapRef.current.setCenter({ lat: myLoc.latitude, lng: myLoc.longitude });
+    mapRef.current.setZoom(15);
+  }, [myLoc]);
 
-  // Check if user is in any safe zone
-  const checkSafeZoneStatus = (location) => {
-    if (!location) return;
-
-    for (const zone of safeZones) {
-      const distance = calculateDistance(
-        location.latitude,
-        location.longitude,
+  // geofence check
+  useEffect(() => {
+    if (!patientLoc || !zone) return;
+    const t = setTimeout(() => {
+      const d = haversineM(
+        patientLoc.latitude,
+        patientLoc.longitude,
         zone.latitude,
         zone.longitude
       );
+      setStatus(
+        d <= zone.radius
+          ? {
+              type: "success",
+              message: `Patient is inside "${zone.name || "Safe Zone"}"`,
+            }
+          : { type: "warning", message: "Patient is outside the safe zone" }
+      );
+    }, 250);
+    return () => clearTimeout(t);
+  }, [patientLoc, zone]);
 
-      if (distance <= zone.radius) {
-        setAlert({
-          type: 'success',
-          message: `You are in the "${zone.name}" safe zone`
-        });
-        return;
-      }
-    }
-
-    // User is not in any safe zone
-    setAlert({
-      type: 'warning',
-      message: 'You are outside all safe zones'
-    });
-  };
-
-  const handleAddZone = (e) => {
-    e.preventDefault();
-    if (newZone.name && newZone.latitude && newZone.longitude) {
-      const zone = {
-        id: Date.now(),
-        name: newZone.name,
-        latitude: parseFloat(newZone.latitude),
-        longitude: parseFloat(newZone.longitude),
-        radius: parseInt(newZone.radius)
+  // caregiver: create/update zone
+  const createZoneAt = useCallback(
+    ({ latLng }) => {
+      if (!isCaregiver || !patientId || !latLng) return;
+      const next = {
+        name: zone?.name || "Safe Zone",
+        latitude: latLng.lat(),
+        longitude: latLng.lng(),
+        radius: zone?.radius || 150,
       };
-      setSafeZones([...safeZones, zone]);
-      setNewZone({ name: '', latitude: '', longitude: '', radius: 100 });
-      setShowAddZone(false);
-      setAlert({
-        type: 'success',
-        message: `Safe zone "${zone.name}" added successfully`
+      setZone(patientId, next);
+      setZoneState(next);
+      setStatus({
+        type: "info",
+        message:
+          "Safe Zone created. Use the slider below to adjust its radius.",
       });
-    }
+    },
+    [isCaregiver, patientId, zone]
+  );
+
+  const updateZone = (patch) => {
+    if (!isCaregiver || !patientId || !zone) return;
+    const next = { ...zone, ...patch };
+    setZone(patientId, next);
+    setZoneState(next);
   };
 
-  const handleDeleteZone = (zoneId) => {
-    setSafeZones(safeZones.filter(zone => zone.id !== zoneId));
-    setAlert({
-      type: 'info',
-      message: 'Safe zone removed'
+  const clearZone = () => {
+    if (!isCaregiver || !patientId) return;
+    deleteZone(patientId);
+    setZoneState(null);
+    setStatus({
+      type: "info",
+      message:
+        "Safe Zone removed. Long-press (right-click) on the map to create a new one.",
     });
   };
 
-  const mapCenter = userLocation ? [userLocation.latitude, userLocation.longitude] : defaultCenter;
+  // route (caregiver -> patient)
+  const routeToPatient = () => {
+    if (!isCaregiver || !myLoc || !patientLoc) return;
+    setDirectionsRes(null);
+    setDirectionsReq({
+      origin: { lat: myLoc.latitude, lng: myLoc.longitude },
+      destination: { lat: patientLoc.latitude, lng: patientLoc.longitude },
+      travelMode: window.google.maps.TravelMode.WALKING,
+    });
+  };
+
+  const mapCenter = useMemo(() => {
+    if (myLoc) return { lat: myLoc.latitude, lng: myLoc.longitude };
+    if (patientLoc)
+      return { lat: patientLoc.latitude, lng: patientLoc.longitude };
+    return DEFAULT_CENTER;
+  }, [myLoc, patientLoc]);
+
+  if (loadError) {
+    return (
+      <div className="screen-container">
+        <div className="map-screen">
+          <div className="alert alert-error">
+            Failed to load Google Maps. Check your API key/domain restrictions.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="screen-container">
+        <div className="map-screen">
+          <div className="alert">Loading map…</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen-container">
@@ -165,180 +229,195 @@ const MapScreen = () => {
         <div className="map-header">
           <h1>Safety Map</h1>
           <div className="map-controls">
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowAddZone(!showAddZone)}
+            <span className="role-chip">
+              {isCaregiver ? "Caregiver" : "Patient"}
+            </span>
+            <button
+              className="btn btn-dark"
+              onClick={() => {
+                if (mapRef.current && myLoc) {
+                  mapRef.current.setCenter({
+                    lat: myLoc.latitude,
+                    lng: myLoc.longitude,
+                  });
+                  mapRef.current.setZoom(16);
+                }
+              }}
             >
-              Add Safe Zone
+              Recenter
             </button>
+            {isCaregiver && patientLoc && (
+              <button className="btn btn-primary" onClick={routeToPatient}>
+                Route to Patient
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Alert */}
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-            <button 
-              className="alert-close"
-              onClick={() => setAlert(null)}
-            >
+        {/* Instruction / status banner */}
+        {status && (
+          <div className={`alert alert-${status.type}`}>
+            {status.message}
+            <button className="alert-close" onClick={() => setStatus(null)}>
               ×
             </button>
           </div>
         )}
+        {geoError && <div className="alert alert-error">{geoError}</div>}
 
-        {/* Add Zone Form */}
-        {showAddZone && (
-          <div className="card add-zone-form">
-            <h3>Add New Safe Zone</h3>
-            <form onSubmit={handleAddZone}>
-              <div className="form-group">
-                <label>Zone Name</label>
-                <input
-                  type="text"
-                  value={newZone.name}
-                  onChange={(e) => setNewZone({...newZone, name: e.target.value})}
-                  placeholder="e.g., Home, Work, School"
-                  required
+        <div className="map-container">
+          <GoogleMap
+            center={mapCenter}
+            zoom={13}
+            mapContainerStyle={MAP_CONTAINER_STYLE}
+            onLoad={(map) => (mapRef.current = map)}
+            options={{
+              streetViewControl: false,
+              fullscreenControl: false,
+              mapTypeControl: false,
+            }}
+            // Long press on mobile triggers right-click; desktop right-click works too
+            onRightClick={(e) => isCaregiver && createZoneAt(e)}
+          >
+            {/* My location */}
+            {myLoc && (
+              <>
+                <Marker
+                  position={{ lat: myLoc.latitude, lng: myLoc.longitude }}
+                  label={{ text: "You", color: "#ffffff" }}
+                  icon={{
+                    url: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+                  }}
                 />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Latitude</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={newZone.latitude}
-                    onChange={(e) => setNewZone({...newZone, latitude: e.target.value})}
-                    placeholder="40.7128"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Longitude</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={newZone.longitude}
-                    onChange={(e) => setNewZone({...newZone, longitude: e.target.value})}
-                    placeholder="-74.0060"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Radius (meters)</label>
-                <input
-                  type="number"
-                  value={newZone.radius}
-                  onChange={(e) => setNewZone({...newZone, radius: e.target.value})}
-                  min="50"
-                  max="1000"
+                {Number.isFinite(myLoc.accuracy) &&
+                  myLoc.accuracy > 0 &&
+                  myLoc.accuracy < 200 && (
+                    <Circle
+                      center={{ lat: myLoc.latitude, lng: myLoc.longitude }}
+                      radius={Math.max(20, myLoc.accuracy)}
+                      options={{
+                        strokeColor: "#2563EB",
+                        fillColor: "#2563EB",
+                        fillOpacity: 0.15,
+                      }}
+                    />
+                  )}
+              </>
+            )}
+
+            {/* Patient location */}
+            {patientLoc && (
+              <Marker
+                position={{
+                  lat: patientLoc.latitude,
+                  lng: patientLoc.longitude,
+                }}
+                label={{ text: "Patient", color: "#ffffff" }}
+                icon={{
+                  url: "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png",
+                }}
+              />
+            )}
+
+            {/* Safe zone */}
+            {zone && (
+              <>
+                <Circle
+                  center={{ lat: zone.latitude, lng: zone.longitude }}
+                  radius={zone.radius}
+                  options={{
+                    strokeColor: "#dc2626",
+                    fillColor: "#dc2626",
+                    fillOpacity: 0.15,
+                  }}
                 />
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">Add Zone</button>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowAddZone(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <Marker
+                  position={{ lat: zone.latitude, lng: zone.longitude }}
+                  draggable={isCaregiver}
+                  onDragEnd={(e) =>
+                    isCaregiver &&
+                    updateZone({
+                      latitude: e.latLng.lat(),
+                      longitude: e.latLng.lng(),
+                    })
+                  }
+                  label={{ text: zone.name || "Safe Zone", color: "#ffffff" }}
+                  icon={{
+                    url: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+                  }}
+                />
+              </>
+            )}
+
+            {/* Directions */}
+            {directionsReq && (
+              <DirectionsService
+                options={directionsReq}
+                callback={(res, status) => {
+                  if (status === "OK") setDirectionsRes(res);
+                  else
+                    setStatus({
+                      type: "error",
+                      message: `Routing failed: ${status}`,
+                    });
+                }}
+              />
+            )}
+            {directionsRes && (
+              <DirectionsRenderer
+                options={{
+                  directions: directionsRes,
+                  preserveViewport: false,
+                  suppressMarkers: true, // we already show our own markers
+                }}
+              />
+            )}
+          </GoogleMap>
+        </div>
+
+        {/* Caregiver-only radius editor */}
+        {isCaregiver && zone && (
+          <div className="card editor">
+            <div className="row">
+              <strong>Edit: {zone.name || "Safe Zone"}</strong>
+            </div>
+            <div className="row">
+              <label style={{ width: 110 }}>Radius: {zone.radius} m</label>
+              <input
+                type="range"
+                min="50"
+                max="1000"
+                step="10"
+                value={zone.radius}
+                onChange={(e) => updateZone({ radius: Number(e.target.value) })}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-ghost" onClick={() => setStatus(null)}>
+                Done
+              </button>
+            </div>
+            <div className="row" style={{ marginTop: 8 }}>
+              <button className="btn btn-danger" onClick={clearZone}>
+                Remove Zone
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Map Container */}
-        <div className="map-container">
-          <MapContainer
-            center={mapCenter}
-            zoom={13}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {/* User Location Marker */}
-            {userLocation && (
-              <Marker 
-                position={[userLocation.latitude, userLocation.longitude]}
-                icon={userLocationIcon}
-              >
-                <Popup>
-                  <strong>Your Location</strong><br />
-                  Lat: {userLocation.latitude.toFixed(6)}<br />
-                  Lng: {userLocation.longitude.toFixed(6)}
-                </Popup>
-              </Marker>
-            )}
-
-            {/* Safe Zone Markers and Circles */}
-            {safeZones.map((zone) => (
-              <React.Fragment key={zone.id}>
-                <Circle
-                  center={[zone.latitude, zone.longitude]}
-                  radius={zone.radius}
-                  fillColor="blue"
-                  fillOpacity={0.2}
-                  color="blue"
-                  weight={2}
-                />
-                <Marker 
-                  position={[zone.latitude, zone.longitude]}
-                  icon={safeZoneIcon}
-                >
-                  <Popup>
-                    <div className="zone-popup">
-                      <strong>{zone.name}</strong><br />
-                      Radius: {zone.radius}m<br />
-                      <button 
-                        className="btn btn-danger btn-small"
-                        onClick={() => handleDeleteZone(zone.id)}
-                      >
-                        Remove Zone
-                      </button>
-                    </div>
-                  </Popup>
-                </Marker>
-              </React.Fragment>
-            ))}
-          </MapContainer>
-        </div>
-
-        {/* Safe Zones List */}
-        <div className="card safe-zones-list">
-          <h3>Your Safe Zones</h3>
-          {safeZones.length === 0 ? (
-            <p className="no-zones">No safe zones configured. Add one above to get started.</p>
-          ) : (
-            <div className="zones-grid">
-              {safeZones.map((zone) => (
-                <div key={zone.id} className="zone-card">
-                  <div className="zone-info">
-                    <h4>{zone.name}</h4>
-                    <p>Radius: {zone.radius}m</p>
-                    <p className="zone-coords">
-                      {zone.latitude.toFixed(4)}, {zone.longitude.toFixed(4)}
-                    </p>
-                  </div>
-                  <button 
-                    className="btn btn-danger btn-small"
-                    onClick={() => handleDeleteZone(zone.id)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+        {/* Caregiver-only: hint when no zone exists */}
+        {isCaregiver && !zone && (
+          <div className="card editor">
+            <div className="row">
+              <strong>No Safe Zone yet</strong>
             </div>
-          )}
-        </div>
+            <div className="row">
+              Long-press (right-click) anywhere on the map to set the Safe Zone
+              center. Once created, a slider will appear here to change its
+              radius.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default MapScreen;
+}
