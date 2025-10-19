@@ -61,7 +61,7 @@ function LongPressToAdd({ onLongPress, pressMs = 500 }) {
   return null;
 }
 
-export default function MapScreen() {
+export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Map', hideBanner = false, hideErrors = false, embed = false }) {
   const mapRef = useRef(null);
 
   // Auth + pair
@@ -248,11 +248,15 @@ export default function MapScreen() {
     return null;
   }, [isCaregiver, isPatient, pair, patientLoc, myLoc, zone]);
 
+  const Wrapper = ({ children }) => embed ? (<div className="map-screen embedded">{children}</div>) : (
+    <div className="screen-container"><div className="map-screen">{children}</div></div>
+  );
+
   return (
-    <div className="screen-container">
-      <div className="map-screen">
+    <Wrapper>
+      {!hideHeader && (
         <div className="map-header">
-          <h1>Safety Map</h1>
+          <h1>{headerTitle}</h1>
           <div className="map-controls">
             <button className="btn btn-dark" onClick={recenter}>Recenter</button>
             {isCaregiver && patientLoc && (
@@ -262,115 +266,94 @@ export default function MapScreen() {
             )}
           </div>
         </div>
-
-        {banner && (
-          <div className={`alert alert-${banner.type}`}>
-            {banner.text}
-          </div>
-        )}
-        {geoError && <div className="alert alert-error">{geoError}</div>}
-
-        <div className="map-container">
-          <MapContainer center={mapCenter} zoom={13} className="map-root" ref={mapRef}>
-            <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-
-            {/* CAREGIVER: long-press to set/move zone center. PATIENT: disabled. */}
-            {isCaregiver && <LongPressToAdd onLongPress={({lat,lng}) => addOrMoveZone({lat,lng})} />}
-
-            {/* My marker (green) */}
-            {myLoc && (
-              <>
-                <Marker position={[myLoc.latitude, myLoc.longitude]} icon={meIcon}>
-                  <Popup><strong>Me ({me?.role})</strong></Popup>
-                </Marker>
-                {Number.isFinite(myLoc.accuracy) && myLoc.accuracy>0 && myLoc.accuracy<200 && (
-                  <Circle center={[myLoc.latitude, myLoc.longitude]} radius={Math.max(20,myLoc.accuracy)}
-                    pathOptions={{ color:"rgba(37,99,235,0.9)", fillColor:"rgba(37,99,235,0.15)" }} />
-                )}
-              </>
-            )}
-
-            {/* Patient marker (red) visible to caregiver */}
-            {isCaregiver && patientLoc && (
-              <Marker position={[patientLoc.latitude, patientLoc.longitude]} icon={patientIcon}>
-                <Popup><strong>Patient</strong></Popup>
-              </Marker>
-            )}
-
-            {/* Single patient zone */}
-            {zone && (
-              <>
-                <Circle center={[zone.latitude, zone.longitude]} radius={zone.radius}
-                  pathOptions={{ color:"rgba(220,38,38,1)", fillColor:"rgba(220,38,38,0.15)" }} />
-                <Marker position={[zone.latitude, zone.longitude]} icon={zoneIcon}
-                        draggable={isCaregiver}
-                        eventHandlers={isCaregiver ? {
-                          dragend: (e) => {
-                            const { lat, lng } = e.target.getLatLng();
-                            addOrMoveZone({ lat, lng });
-                          }
-                        } : {}}>
-                  <Popup>
-                    <div className="zone-popup">
-                      <strong>Safe Zone</strong><br/>
-                      Radius: {zone.radius}m<br/>
-                      {isCaregiver && <button className="btn btn-danger btn-small" onClick={removeZone}>Remove Zone</button>}
-                    </div>
-                  </Popup>
-                </Marker>
-              </>
-            )}
-
-            {/* Caregiver route polyline */}
-            {isCaregiver && routeCoords && <Polyline positions={routeCoords} />}
-          </MapContainer>
+      )}
+      {!hideBanner && banner && (
+        <div className={`alert alert-${banner.type}`}>
+          {banner.text}
         </div>
+      )}
+      {!hideErrors && geoError && <div className="alert alert-error">{geoError}</div>}
 
-        {/* CAREGIVER: radius slider */}
-        {isCaregiver && zone && (
-          <div className="card editor">
-            <div className="row"><strong>Edit Safe Zone</strong></div>
-            <div className="row">
-              <label style={{ width: 120 }}>Radius: {zone.radius} m</label>
-              <input type="range" min="50" max="1000" step="10" value={zone.radius}
-                     onChange={(e)=>updateRadius(Number(e.target.value))} style={{ flex: 1 }} />
-              <button className="btn btn-ghost" onClick={()=>setEditing(false)}>Done</button>
-            </div>
-          </div>
-        )}
+      <div className="map-container">
+        <MapContainer center={mapCenter} zoom={13} className="map-root" ref={mapRef}>
+          <TileLayer
+            attribution='&copy; OpenStreetMap contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-        {/* CAREGIVER: simple alerts list */}
-        {isCaregiver && (
-          <div className="card" style={{ marginTop: 12 }}>
-            <div className="row" style={{ justifyContent: "space-between" }}>
-              <h3>Alerts</h3>
-              <button className="btn btn-ghost btn-small" onClick={() => { markAlertsRead(me.id); setAlerts(listAlerts(me.id)); }}>
-                Mark read
-              </button>
-            </div>
-            {alerts.length === 0 ? <p>No alerts yet.</p> : (
-              <ul className="list">
-                {alerts.map(a => (
-                  <li key={a.id}>
-                    <strong>{a.type.replace("_"," ")}</strong> — {new Date(a.ts).toLocaleTimeString()} {a.read ? "(read)" : ""}
-                    {a.payload?.distance != null && <> · ~{a.payload.distance}m away</>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+          {/* CAREGIVER: long-press to set/move zone center. PATIENT: disabled. */}
+          {isCaregiver && <LongPressToAdd onLongPress={({lat,lng}) => addOrMoveZone({lat,lng})} />}
 
-        {/* PATIENT: small note that zone is caregiver-controlled */}
-        {isPatient && (
-          <div className="card" style={{ marginTop: 12 }}>
-            <p>Your caregiver controls your safe zone. You cannot edit it.</p>
-          </div>
-        )}
+          {/* My marker (green) */}
+          {myLoc && (
+            <>
+              <Marker position={[myLoc.latitude, myLoc.longitude]} icon={meIcon}>
+                <Popup><strong>Me ({me?.role})</strong></Popup>
+              </Marker>
+              {Number.isFinite(myLoc.accuracy) && myLoc.accuracy>0 && myLoc.accuracy<200 && (
+                <Circle center={[myLoc.latitude, myLoc.longitude]} radius={Math.max(20,myLoc.accuracy)}
+                  pathOptions={{ color:"rgba(37,99,235,0.9)", fillColor:"rgba(37,99,235,0.15)" }} />
+              )}
+            </>
+          )}
+
+          {/* Patient marker (red) visible to caregiver */}
+          {isCaregiver && patientLoc && (
+            <Marker position={[patientLoc.latitude, patientLoc.longitude]} icon={patientIcon}>
+              <Popup><strong>Patient</strong></Popup>
+            </Marker>
+          )}
+
+          {/* Single patient zone */}
+          {zone && (
+            <>
+              <Circle center={[zone.latitude, zone.longitude]} radius={zone.radius}
+                pathOptions={{ color:"rgba(220,38,38,1)", fillColor:"rgba(220,38,38,0.15)" }} />
+              <Marker position={[zone.latitude, zone.longitude]} icon={zoneIcon}
+                      draggable={isCaregiver}
+                      eventHandlers={isCaregiver ? {
+                        dragend: (e) => {
+                          const { lat, lng } = e.target.getLatLng();
+                          addOrMoveZone({ lat, lng });
+                        }
+                      } : {}}>
+                <Popup>
+                  <div className="zone-popup">
+                    <strong>Safe Zone</strong><br/>
+                    Radius: {zone.radius}m<br/>
+                    {isCaregiver && <button className="btn btn-danger btn-small" onClick={removeZone}>Remove Zone</button>}
+                  </div>
+                </Popup>
+              </Marker>
+            </>
+          )}
+
+          {/* Caregiver route polyline */}
+          {isCaregiver && routeCoords && <Polyline positions={routeCoords} />}
+        </MapContainer>
       </div>
-    </div>
+
+      {/* CAREGIVER: radius slider */}
+      {isCaregiver && zone && (
+        <div className="card editor">
+          <div className="row"><strong>Edit Safe Zone</strong></div>
+          <div className="row">
+            <label style={{ width: 120 }}>Radius: {zone.radius} m</label>
+            <input type="range" min="50" max="1000" step="10" value={zone.radius}
+                   onChange={(e)=>updateRadius(Number(e.target.value))} style={{ flex: 1 }} />
+            <button className="btn btn-ghost" onClick={()=>setEditing(false)}>Done</button>
+          </div>
+        </div>
+      )}
+
+      {/* Removed Alerts UI per caregiver design */}
+
+      {/* PATIENT: small note that zone is caregiver-controlled */}
+      {isPatient && (
+        <div className="card" style={{ marginTop: 12 }}>
+          <p>Your caregiver controls your safe zone. You cannot edit it.</p>
+        </div>
+      )}
+    </Wrapper>
   );
 }

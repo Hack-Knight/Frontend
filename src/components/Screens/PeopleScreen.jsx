@@ -327,19 +327,6 @@ const PeopleScreen = () => {
             </button>
           </div>
         )}
-
-        {/* Emergency Button */}
-        <div className="emergency-actions">
-          <h3>Quick Emergency Actions</h3>
-          <div className="emergency-buttons">
-            <button className="emergency-call-btn">
-              Call 911
-            </button>
-            <button className="emergency-sms-btn">
-              Send Emergency SMS to All
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

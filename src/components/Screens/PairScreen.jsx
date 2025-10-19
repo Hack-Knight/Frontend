@@ -21,7 +21,7 @@ export default function PairScreen() {
     if (isCaregiver) setPatients(myPatients(me.id));
   };
 
-  useEffect(() => { refresh(); }, []); // on mount
+  useEffect(() => { refresh(); }, []);
 
   const doPair = (e) => {
     e.preventDefault();
@@ -39,15 +39,13 @@ export default function PairScreen() {
     }
   };
 
-  const doUnpair = () => {
+  const doUnpair = (pid) => {
     setError(""); setInfo("");
     try {
       if (isCaregiver) {
-        // If you support multiple patients, choose which to unpair.
-        // Here we unpair the first (or only) patient in list, or pair.patientId.
-        const pid = pair?.patientId ?? patients[0]?.id;
-        if (!pid) throw new Error("No patient to unpair.");
-        unpair(me.id, pid);
+        const patientId = pid ?? pair?.patientId ?? patients[0]?.id;
+        if (!patientId) throw new Error("No patient to unpair.");
+        unpair(me.id, patientId);
       } else if (isPatient) {
         if (!pair?.caregiverId) throw new Error("No caregiver to unpair.");
         unpair(pair.caregiverId, me.id);
@@ -59,20 +57,28 @@ export default function PairScreen() {
     }
   };
 
+  const base = process.env.PUBLIC_URL || '';
+
   return (
     <div className="screen-container" style={{ maxWidth: 640, margin: "0 auto" }}>
-      <h1>Pairing</h1>
+      <div className="map-header" style={{ alignItems: 'center' }}>
+        <h1 style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <img src={`${base}/icons/people.png`} alt="" width={24} height={24} aria-hidden="true"/>
+          Pair Patient
+        </h1>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
       {isCaregiver && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <h3>Pair with a Patient</h3>
-          <form onSubmit={doPair} className="row" style={{ gap: 8 }}>
+          <h3>Invite or pair by email</h3>
+          <p style={{ marginTop: 4, opacity: 0.85 }}>Your patient should sign up with this email.</p>
+          <form onSubmit={doPair} className="row" style={{ gap: 8, marginTop: 10 }}>
             <input
               type="email"
-              placeholder="Patient email"
+              placeholder="patient@email.com"
               value={email}
               onChange={(e)=>setEmail(e.target.value)}
               required
@@ -80,49 +86,41 @@ export default function PairScreen() {
             />
             <button className="btn btn-primary">Pair</button>
           </form>
-          <p style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
-            Tip: Ask your patient to create an account first using the same email.
-          </p>
         </div>
       )}
 
       <div className="card">
-        <h3>Status</h3>
+        <h3>Current pairing</h3>
         {isCaregiver && (
-          <>
-            {patients.length === 0 ? (
-              <p>You are not paired with any patients yet.</p>
-            ) : (
-              <ul className="list">
-                {patients.map(p => (
-                  <li key={p.id}>
-                    <strong>{p.name || p.email}</strong> — patient
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+          patients.length === 0 ? (
+            <p>No patients paired yet.</p>
+          ) : (
+            <ul className="list">
+              {patients.map(p => (
+                <li key={p.id} className="row" style={{ alignItems:'center', gap:10 }}>
+                  <img src={`${base}/icons/people.png`} alt="" width={18} height={18} aria-hidden="true"/>
+                  <strong style={{ flex:1 }}>{p.name || p.email}</strong>
+                  <button className="btn btn-ghost btn-small" onClick={() => doUnpair(p.id)}>Unpair</button>
+                </li>
+              ))}
+            </ul>
+          )
         )}
         {isPatient && (
-          <>
-            {!pair ? (
-              <p>You are not paired. Ask your caregiver to pair with your email.</p>
-            ) : (
-              <p>
-                Caregiver: <strong>{myCaregiver(me.id)?.name || myCaregiver(me.id)?.email}</strong>
-              </p>
-            )}
-          </>
-        )}
-        {(pair || (isCaregiver && patients.length > 0)) && (
-          <button className="btn btn-danger" style={{ marginTop: 8 }} onClick={doUnpair}>
-            Unpair
-          </button>
+          !pair ? (
+            <p>You are not paired. Ask your caregiver to pair with your email.</p>
+          ) : (
+            <div className="row" style={{ alignItems:'center', gap:10 }}>
+              <img src={`${base}/icons/people.png`} alt="" width={18} height={18} aria-hidden="true"/>
+              Caregiver: <strong>{myCaregiver(me.id)?.name || myCaregiver(me.id)?.email}</strong>
+              <button className="btn btn-ghost btn-small" onClick={() => doUnpair()}>Unpair</button>
+            </div>
+          )
         )}
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button className="btn btn-dark" onClick={() => nav("/")}>Back to Map</button>
+      <div style={{ marginTop: 8 }}>
+        <button className="btn btn-ghost" onClick={() => nav("/map")}>Back to Map</button>
       </div>
     </div>
   );

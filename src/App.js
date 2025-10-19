@@ -14,6 +14,8 @@ import MapScreen from "./components/Screens/MapScreen";
 import PeopleScreen from "./components/Screens/PeopleScreen";
 import VoiceScreen from "./components/Screens/VoiceAgent";
 import PairScreen from "./components/Screens/PairScreen";
+import UserSettingsScreen from "./components/Screens/UserSettingsScreen";
+import CaregiverSettingsScreen from "./components/Screens/CaregiverSettingsScreen";
 
 // Auth pages
 import Signup from "./auth/Signup";
@@ -47,6 +49,14 @@ function Layout({ children }) {
       <main className="main-content">{children}</main>
     </div>
   );
+}
+
+// ---------- Role-based settings ----------
+function RoleBasedSettings() {
+  const me = getCurrentUser();
+  const role = me?.role;
+  if (!role) return <Navigate to="/auth/login" replace />;
+  return role === "caregiver" ? <CaregiverSettingsScreen /> : <UserSettingsScreen />;
 }
 
 // ---------- App ----------
@@ -123,6 +133,17 @@ export default function App() {
               </RequireAuth>
             }
           />
+
+          {/* New Settings route (role-based) */}
+          <Route
+            path="/settings"
+            element={
+              <RequireAuth>
+                <RoleBasedSettings />
+              </RequireAuth>
+            }
+          />
+
           <Route path="/auth/logout" element={<Logout />} />
 
           {/* Catch-all → signup if logged out, else home */}

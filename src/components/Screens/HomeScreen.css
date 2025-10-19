@@ -136,6 +136,43 @@
   filter: brightness(0) invert(1);
 }
 
+/* Section titles */
+.zone-status-title,
+.recent-title {
+  font-weight: 800;
+  color: #1f2937;
+  font-size: 1.15rem;
+  margin: 10px 0 12px;
+}
+
+/* Status pill */
+.zone-pill {
+  border-radius: 18px;
+  padding: 18px 20px;
+  font-weight: 800;
+  color: #fff;
+  display: inline-flex;
+  min-width: 240px;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+.zone-pill.inside {
+  background: linear-gradient(135deg, #33d17a 0%, #2ebc6d 60%, #198754 100%);
+}
+.zone-pill.outside {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 60%, #b91c1c 100%);
+}
+.zone-pill.info {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+.zone-pill.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.zone-pill.checking {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .home-screen { padding: 16px; }

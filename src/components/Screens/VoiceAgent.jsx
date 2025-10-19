@@ -19,7 +19,6 @@ const VoiceAgent = ({ inline = false, showHeader = !inline }) => {
     setError('');
     setIsStarting(true);
     try {
-      // Request mic permission first
       await navigator.mediaDevices.getUserMedia({ audio: true });
       await conversation.startSession({
         agentId: AGENT_ID,
@@ -41,8 +40,8 @@ const VoiceAgent = ({ inline = false, showHeader = !inline }) => {
 
   const content = (
     <div className={`voice-button-screen${inline ? ' inline' : ''}`}>
-      {showHeader && <div className="ai-title">AI Voice (WebRTC)</div>}
-      {showHeader && <div className="ai-subtitle">Live conversation via ElevenLabs Agent</div>}
+      {showHeader && <div className="ai-title">AI Voice</div>}
+      {showHeader && <div className="ai-subtitle">Hands‑free assistance</div>}
 
       <button
         className={`ai-voice-btn ${isActive || isStarting ? 'listening' : ''}`}
@@ -59,8 +58,7 @@ const VoiceAgent = ({ inline = false, showHeader = !inline }) => {
         <div className="ai-alert error" role="alert">{error}</div>
       )}
 
-      <div className="ai-hint">Status: {conversation.status || 'disconnected'}</div>
-      <div className="ai-hint">Tap Start and allow mic. Tap Stop to end.</div>
+      <div className="ai-hint">{isActive ? 'Connected' : 'Disconnected'}</div>
     </div>
   );
 
