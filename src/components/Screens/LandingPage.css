@@ -1,0 +1,25 @@
+/* LandingPage.css - center the AI Agent button on the homepage */
+.landing-container {
+  padding: 0 20px 100px; /* bottom space for bottom nav on mobile */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Make the button a bit larger on the landing */
+.landing-container .ai-voice-btn {
+  width: 240px;
+  height: 240px;
+}
+
+@media (min-width: 768px) {
+  .landing-container { padding: 0 40px; }
+}
+
+@media (max-width: 480px) {
+  .landing-container .ai-voice-btn {
+    width: 200px;
+    height: 200px;
+  }
+}

@@ -31,7 +31,7 @@ body {
   height: 100vh;
   left: 0;
   top: 0;
-  z-index: 1000;
+  z-index: 3000; /* keep above map controls */
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -116,7 +116,7 @@ body {
   position: fixed;
   top: 20px;
   left: 20px;
-  z-index: 1001;
+  z-index: 3200; /* above overlay/sidebar */
   background: #667eea;
   border: none;
   border-radius: 50%;
@@ -183,7 +183,7 @@ body {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 2900; /* BELOW sidebar (3000), ABOVE content/map */
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -242,6 +242,11 @@ body {
   
   .main-content.sidebar-open {
     margin-left: 0;
+  }
+  
+  /* Make room for bottom nav */
+  .screen-container {
+    padding-bottom: 100px; /* height of bottom nav + spacing */
   }
 }
 
@@ -333,6 +338,12 @@ body {
   width: 100%;
 }
 
+/* Disable map interactions while the sidebar is open */
+body.sidebar-open .leaflet-container,
+body.sidebar-open .map-container {
+  pointer-events: none !important;
+}
+
 /* Alert Styles */
 .alert {
   padding: 16px;
@@ -404,4 +415,12 @@ body {
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Embedded map spacing tweaks (used on Home screen) */
+.map-screen.embedded {
+  padding: 0; /* remove extra padding when embedded */
+}
+.map-screen.embedded .map-container {
+  margin: 8px 0 16px; /* tight spacing with titles */
 }

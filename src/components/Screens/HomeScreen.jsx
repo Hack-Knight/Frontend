@@ -1,36 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './HomeScreen.css';
+import { getCurrentUser } from "../../services/localAuth";
+import { getPairForUser } from "../../services/localPairing";
+import { getZone } from "../../services/localZones";
+import { getLocation } from "../../services/localLocation";
+import MapScreen from "./MapScreen";
+import VoiceAgent from "./VoiceAgent";
+
+const haversineM = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const dφ = ((lat2 - lat1) * Math.PI) / 180;
+  const dλ = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const HomeScreen = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null);
-  const [safeZoneStatus, setSafeZoneStatus] = useState('unknown');
+  const [me, setMe] = useState(null);
+  const [status, setStatus] = useState({ state: 'checking', text: 'Checking location...' });
 
+  useEffect(() => { setMe(getCurrentUser()); }, []);
+  // Update time less frequently to avoid re-rendering the map every second
+  useEffect(() => { const t=setInterval(()=>setCurrentTime(new Date()),60000); return ()=>clearInterval(t); }, []);
+
+  // Poll saved locations/zones to compute inside/outside
   useEffect(() => {
-    // Update time every second
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    if (!me?.id) return;
+    const isCaregiver = me.role === 'caregiver';
 
-    // Get user location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-          setSafeZoneStatus('safe'); // Mock status
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setSafeZoneStatus('error');
+    const compute = () => {
+      try {
+        if (isCaregiver) {
+          const pair = getPairForUser(me.id);
+          const patientId = pair?.patientId;
+          if (!patientId) { setStatus({ state:'info', text:'Pair with a patient to begin.' }); return; }
+          const z = getZone(patientId);
+          const loc = getLocation(patientId);
+          if (!z) { setStatus({ state:'info', text:'No safe zone set yet.' }); return; }
+          if (!loc) { setStatus({ state:'warning', text:'Waiting for patient location...' }); return; }
+          const d = haversineM(loc.latitude, loc.longitude, z.latitude, z.longitude);
+          const outside = d > z.radius;
+          setStatus(outside ? { state:'outside', text:'Outside SafeCircle' } : { state:'inside', text:'Inside SafeCircle' });
+        } else {
+          const z = getZone(me.id);
+          const loc = getLocation(me.id);
+          if (!z) { setStatus({ state:'info', text:'No safe zone set yet.' }); return; }
+          if (!loc) { setStatus({ state:'warning', text:'Locating you...' }); return; }
+          const d = haversineM(loc.latitude, loc.longitude, z.latitude, z.longitude);
+          const outside = d > z.radius;
+          setStatus(outside ? { state:'outside', text:'Outside SafeCircle' } : { state:'inside', text:'Inside SafeCircle' });
         }
-      );
-    }
+      } catch {
+        setStatus({ state:'checking', text:'Checking location...' });
+      }
+    };
 
-    return () => clearInterval(timer);
-  }, []);
+    compute();
+    const t = setInterval(compute, 1500);
+    return () => clearInterval(t);
+  }, [me?.id, me?.role]);
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -39,29 +70,18 @@ const HomeScreen = () => {
     return 'Good Evening';
   };
 
-  const getStatusColor = () => {
-    switch (safeZoneStatus) {
-      case 'safe': return '#28a745';
-      case 'warning': return '#ffc107';
-      case 'danger': return '#dc3545';
-      default: return '#6c757d';
-    }
-  };
+  const isCaregiver = me?.role === 'caregiver';
+  const isPatient = me?.role === 'patient';
 
-  const getStatusText = () => {
-    switch (safeZoneStatus) {
-      case 'safe': return 'You are in a safe zone';
-      case 'warning': return 'Approaching safe zone boundary';
-      case 'danger': return 'Outside safe zone';
-      case 'error': return 'Unable to determine location';
-      default: return 'Checking location...';
-    }
-  };
+  // Memoize the embedded map so it doesn’t re-render on unrelated state changes
+  const mapEmbed = useMemo(() => (
+    <MapScreen hideHeader hideBanner hideErrors embed />
+   ), [//me?.role
+   ]);
 
   return (
     <div className="screen-container">
       <div className="home-screen">
-        {/* Welcome Header */}
         <div className="welcome-section">
           <h1 className="greeting">{getGreeting()}!</h1>
           <p className="current-time">
@@ -69,86 +89,26 @@ const HomeScreen = () => {
           </p>
         </div>
 
-        {/* Status Card */}
-        <div className="card status-card">
-          <div className="status-indicator">
-            <div 
-              className="status-dot"
-              style={{ backgroundColor: getStatusColor() }}
-            ></div>
-            <h2 className="status-title">Safety Status</h2>
-          </div>
-          <p className="status-text" style={{ color: getStatusColor() }}>
-            {getStatusText()}
-          </p>
-          {userLocation && (
-            <div className="location-info">
-              <small>
-                Lat: {userLocation.latitude.toFixed(6)}, 
-                Lng: {userLocation.longitude.toFixed(6)}
-              </small>
-            </div>
-          )}
+        {/* Safety Zone Status */}
+        <div>
+          <h2 className="zone-status-title">Safety Zone Status</h2>
+          <div className={`zone-pill ${status.state}`} aria-live="polite">{status.text}</div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="quick-actions">
-          <h3>Quick Actions</h3>
-          <div className="action-grid">
-            <button className="action-btn btn-primary">
-              <img src="/assets/icons/map.png" alt="Map" className="action-icon" />
-              View Map
-            </button>
-            <button className="action-btn btn-danger">
-              <img src="/assets/icons/mic.png" alt="SOS" className="action-icon" />
-              Emergency SOS
-            </button>
-            <button className="action-btn btn-secondary">
-              <img src="/assets/icons/people.png" alt="Contacts" className="action-icon" />
-              Emergency Contacts
-            </button>
-            <button className="action-btn btn-secondary">
-              <img src="/assets/icons/home.png" alt="Safe Zone" className="action-icon" />
-              Add Safe Zone
-            </button>
+        {/* Caregiver: recent activities map */}
+        {isCaregiver && (
+          <div style={{ marginTop: 16 }}>
+            <h2 className="recent-title">Recent Activities</h2>
+            {mapEmbed}
           </div>
-        </div>
+        )}
 
-        {/* Recent Activity */}
-        <div className="card recent-activity">
-          <h3>Recent Activity</h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon safe">✓</div>
-              <div className="activity-content">
-                <p className="activity-title">Entered Safe Zone</p>
-                <p className="activity-time">2 minutes ago</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon info">i</div>
-              <div className="activity-content">
-                <p className="activity-title">Location updated</p>
-                <p className="activity-time">5 minutes ago</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon warning">!</div>
-              <div className="activity-content">
-                <p className="activity-title">Battery low warning</p>
-                <p className="activity-time">1 hour ago</p>
-              </div>
-            </div>
+        {/* Patient: AI agent big button */}
+        {isPatient && (
+          <div style={{ marginTop: 16 }}>
+            <VoiceAgent />
           </div>
-        </div>
-
-        {/* Emergency Button */}
-        <div className="emergency-section">
-          <button className="emergency-btn">
-            <span className="emergency-text">EMERGENCY</span>
-            <span className="emergency-subtext">Tap and hold for 3 seconds</span>
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
