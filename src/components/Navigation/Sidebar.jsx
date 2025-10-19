@@ -3,14 +3,6 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { signOutLocal } from "../../services/localAuth"; // ✅ add this import
 import "./Sidebar.css";
 
-const navItems = [
-  { path: "/home",  label: "Home",   icon: "icons/home.png" },
-  { path: "/map",   label: "Map",    icon: "icons/map.png" },
-  { path: "/people",label: "People", icon: "icons/people.png" },
-  { path: "/pair",  label: "Pair",   icon: "icons/people.png" },
-  { path: "/voice", label: "Voice",  icon: "icons/mic.png" },
-];
-
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -48,21 +40,6 @@ export default function Sidebar() {
     if (e?.target && e.target.src !== fallback) {
       e.target.src = fallback;
     }
-  };
-
-  const handleSignOut = () => {
-    // Clear any authentication tokens or user data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    sessionStorage.clear();
-    
-    // Close sidebar if open
-    setIsOpen(false);
-    
-    // Redirect to landing page
-    // Note: Replace '/landing' with actual landing page route when it exists
-    // For now, redirecting to '/' or '/login' to prevent app failure
-    window.location.href = '/';
   };
 
   const navItems = [
