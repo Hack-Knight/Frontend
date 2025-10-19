@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -26,7 +27,7 @@ const Sidebar = () => {
     // Redirect to landing page
     // Note: Replace '/landing' with actual landing page route when it exists
     // For now, redirecting to '/' or '/login' to prevent app failure
-    window.location.href = '/';
+    navigate('/landing');
   };
 
   const navItems = [

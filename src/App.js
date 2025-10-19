@@ -7,6 +7,8 @@ import HomeScreen from './components/Screens/HomeScreen';
 import MapScreen from './components/Screens/MapScreen';
 import PeopleScreen from './components/Screens/PeopleScreen';
 import VoiceScreen from './components/Screens/VoiceScreen';
+import LandingScreen from './components/Screens/LandingScreen';
+import SignupScreen from './components/Screens/SignupScreen';
 
 // Import navigation components
 import Sidebar from './components/Navigation/Sidebar';
@@ -18,11 +20,12 @@ function App() {
         <Sidebar />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<HomeScreen />} />
+            <Route path="/landing" element={<LandingScreen />} />
             <Route path="/home" element={<HomeScreen />} />
             <Route path="/map" element={<MapScreen />} />
             <Route path="/people" element={<PeopleScreen />} />
             <Route path="/voice" element={<VoiceScreen />} />
+            <Route path="/signup" element={<SignupScreen />} />
           </Routes>
         </main>
       </div>
