@@ -14,11 +14,26 @@ const Sidebar = () => {
     setIsOpen(false);
   };
 
+  const handleSignOut = () => {
+    // Clear any authentication tokens or user data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
+    
+    // Close sidebar if open
+    setIsOpen(false);
+    
+    // Redirect to landing page
+    // Note: Replace '/landing' with actual landing page route when it exists
+    // For now, redirecting to '/' or '/login' to prevent app failure
+    window.location.href = '/';
+  };
+
   const navItems = [
-    { path: '/home', label: 'Home', icon: '/assets/icons/home.png' },
-    { path: '/map', label: 'Map', icon: '/assets/icons/map.png' },
-    { path: '/people', label: 'People', icon: '/assets/icons/people.png' },
-    { path: '/voice', label: 'Voice', icon: '/assets/icons/mic.png' },
+    { path: '/home', label: 'Home', icon: '/icons/home.png' },
+    { path: '/map', label: 'Map', icon: '/icons/map.png' },
+    { path: '/people', label: 'People', icon: '/icons/people.png' },
+    { path: '/voice', label: 'Voice', icon: '/icons/mic.png' },
   ];
 
   return (
@@ -41,9 +56,9 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <img 
-            src="/assets/logo.png" 
-            alt="SafeCircle Logo" 
+          <img
+            src="/logo.png"
+            alt="SafeCircle Logo"
             className="sidebar-logo"
           />
           <h2 className="sidebar-title">SafeCircle</h2>
@@ -67,6 +82,14 @@ const Sidebar = () => {
             </Link>
           ))}
         </nav>
+        
+        <button
+          className="sign-out-button"
+          onClick={handleSignOut}
+          aria-label="Sign out"
+        >
+          Sign Out
+        </button>
       </aside>
     </>
   );
