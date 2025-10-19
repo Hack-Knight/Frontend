@@ -18,6 +18,12 @@
   pointer-events: none;
 }
 
+/* Embedded map on HomeScreen */
+.map-screen.embedded {
+  padding: 0;
+  margin-top: 8px;
+}
+
 /* Allow interaction with child elements */
 .map-screen > * {
   pointer-events: auto;

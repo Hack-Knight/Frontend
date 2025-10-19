@@ -43,10 +43,10 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { path: '/home', label: 'Home', icon: '/icons/home.png' },
-    { path: '/map', label: 'Map', icon: '/icons/map.png' },
-    { path: '/people', label: 'People', icon: '/icons/people.png' },
-    { path: '/voice', label: 'Voice', icon: '/icons/mic.png' },
+    { path: '/home', label: 'Home', icon: `${base}/icons/home.png` },
+    { path: '/map', label: 'Map', icon: `${base}/icons/map.png` },
+    { path: '/people', label: 'People', icon: `${base}/icons/people.png` },
+    { path: '/voice', label: 'Voice', icon: `${base}/icons/mic.png` },
   ];
 
   return (
@@ -91,7 +91,7 @@ export default function Sidebar() {
               end={item.path === "/home" || item.path === "/"}
             >
               <img
-                src={`${base}/${item.icon}`}
+                src={item.icon}
                 alt=""
                 className="nav-icon"
                 aria-hidden="true"

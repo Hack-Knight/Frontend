@@ -25,6 +25,9 @@ import Logout from "./auth/Logout";
 // Navigation
 import Sidebar from "./components/Navigation/Sidebar";
 
+// Global UI
+import SOSButton from "./components/Global/SOSButton";
+
 // Local auth
 import { getCurrentUser } from "./services/localAuth";
 
@@ -47,6 +50,8 @@ function Layout({ children }) {
     <div className="app">
       {!isAuthRoute && <Sidebar />}
       <main className="main-content">{children}</main>
+      {/* Global SOS floating button (hidden on auth screens) */}
+      {!isAuthRoute && <SOSButton />}
     </div>
   );
 }

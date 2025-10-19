@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './HomeScreen.css';
 import { getCurrentUser } from "../../services/localAuth";
 import { getPairForUser } from "../../services/localPairing";
@@ -21,6 +22,7 @@ const HomeScreen = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [me, setMe] = useState(null);
   const [status, setStatus] = useState({ state: 'checking', text: 'Checking location...' });
+  const navigate = useNavigate();
 
   useEffect(() => { setMe(getCurrentUser()); }, []);
   // Update time less frequently to avoid re-rendering the map every second
@@ -92,7 +94,14 @@ const HomeScreen = () => {
         {/* Safety Zone Status */}
         <div>
           <h2 className="zone-status-title">Safety Zone Status</h2>
-          <div className={`zone-pill ${status.state}`} aria-live="polite">{status.text}</div>
+          <div 
+            className={`zone-pill ${status.state}`} 
+            aria-live="polite"
+            onClick={() => status.state === 'info' && status.text.includes('Pair') && navigate('/pair')}
+            style={{ cursor: status.state === 'info' && status.text.includes('Pair') ? 'pointer' : 'default' }}
+          >
+            {status.text}
+          </div>
         </div>
 
         {/* Caregiver: recent activities map */}

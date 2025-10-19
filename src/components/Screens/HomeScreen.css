@@ -137,12 +137,18 @@
 }
 
 /* Section titles */
-.zone-status-title,
-.recent-title {
+.zone-status-title {
   font-weight: 800;
   color: #1f2937;
   font-size: 1.15rem;
   margin: 10px 0 12px;
+}
+
+.recent-title {
+  font-weight: 800;
+  color: #1f2937;
+  font-size: 1.15rem;
+  margin: 10px 0 8px;
 }
 
 /* Status pill */
