@@ -50,7 +50,7 @@ const HomeScreen = () => {
 
   const getStatusText = () => {
     switch (safeZoneStatus) {
-      case 'safe': return 'You are in a safe zone';
+      case 'safe': return 'You are in safe zone';
       case 'warning': return 'Approaching safe zone boundary';
       case 'danger': return 'Outside safe zone';
       case 'error': return 'Unable to determine location';
@@ -89,65 +89,6 @@ const HomeScreen = () => {
               </small>
             </div>
           )}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="quick-actions">
-          <h3>Quick Actions</h3>
-          <div className="action-grid">
-            <button className="action-btn btn-primary">
-              <img src="/assets/icons/map.png" alt="Map" className="action-icon" />
-              View Map
-            </button>
-            <button className="action-btn btn-danger">
-              <img src="/assets/icons/mic.png" alt="SOS" className="action-icon" />
-              Emergency SOS
-            </button>
-            <button className="action-btn btn-secondary">
-              <img src="/assets/icons/people.png" alt="Contacts" className="action-icon" />
-              Emergency Contacts
-            </button>
-            <button className="action-btn btn-secondary">
-              <img src="/assets/icons/home.png" alt="Safe Zone" className="action-icon" />
-              Add Safe Zone
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="card recent-activity">
-          <h3>Recent Activity</h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon safe">✓</div>
-              <div className="activity-content">
-                <p className="activity-title">Entered Safe Zone</p>
-                <p className="activity-time">2 minutes ago</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon info">i</div>
-              <div className="activity-content">
-                <p className="activity-title">Location updated</p>
-                <p className="activity-time">5 minutes ago</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon warning">!</div>
-              <div className="activity-content">
-                <p className="activity-title">Battery low warning</p>
-                <p className="activity-time">1 hour ago</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Emergency Button */}
-        <div className="emergency-section">
-          <button className="emergency-btn">
-            <span className="emergency-text">EMERGENCY</span>
-            <span className="emergency-subtext">Tap and hold for 3 seconds</span>
-          </button>
         </div>
       </div>
     </div>

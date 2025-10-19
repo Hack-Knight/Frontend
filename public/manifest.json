@@ -1,7 +1,7 @@
 {
   "short_name": "SafeCircle",
   "name": "SafeCircle - Personal Safety App",
-  "description": "A comprehensive personal safety application with location tracking, emergency contacts, and voice assistance.",
+  "description": "A personal safety application with location tracking and emergency contacts.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -30,13 +30,6 @@
   "dir": "ltr",
   "prefer_related_applications": false,
   "shortcuts": [
-    {
-      "name": "Emergency Alert",
-      "short_name": "Emergency",
-      "description": "Trigger emergency alert immediately",
-      "url": "/voice?action=emergency",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
-    },
     {
       "name": "View Map",
       "short_name": "Map",

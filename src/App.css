@@ -243,6 +243,11 @@ body {
   .main-content.sidebar-open {
     margin-left: 0;
   }
+  
+  /* Make room for bottom nav */
+  .screen-container {
+    padding-bottom: 100px; /* height of bottom nav + spacing */
+  }
 }
 
 /* Card Styles */
