@@ -1,35 +1,141 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import "./App.css";
 
-// Import screens
-import HomeScreen from './components/Screens/HomeScreen';
-import MapScreen from './components/Screens/MapScreen';
-import PeopleScreen from './components/Screens/PeopleScreen';
-import LandingPage from './components/Screens/LandingPage';
+// Screens
+import HomeScreen from "./components/Screens/HomeScreen";
+import MapScreen from "./components/Screens/MapScreen";
+import PeopleScreen from "./components/Screens/PeopleScreen";
+import VoiceScreen from "./components/Screens/VoiceScreen";
+import PairScreen from "./components/Screens/PairScreen";
 
-// Import navigation components
-import Sidebar from './components/Navigation/Sidebar';
-import BottomNav from './components/Navigation/BottomNav';
+// Auth pages
+import Signup from "./auth/Signup";
+import Login from "./auth/Login";
 
-function App() {
+// Navigation
+import Sidebar from "./components/Navigation/Sidebar";
+
+// Local auth
+import { getCurrentUser } from "./services/localAuth";
+
+// ---------- Guards ----------
+function RequireAuth({ children }) {
+  const user = getCurrentUser();
+  return user ? children : <Navigate to="/auth/signup" replace />;
+}
+
+function PublicOnly({ children }) {
+  const user = getCurrentUser();
+  return user ? <Navigate to="/" replace /> : children;
+}
+
+// ---------- Frame wrapper ----------
+function Layout({ children }) {
+  const { pathname } = useLocation();
+  const isAuthRoute = pathname.startsWith("/auth/");
   return (
-    <Router>
-      <div className="app">
-        <Sidebar />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/home" element={<HomeScreen />} />
-            <Route path="/map" element={<MapScreen />} />
-            <Route path="/people" element={<PeopleScreen />} />
-          </Routes>
-        </main>
-        {/* Fixed mobile bottom navigation */}
-        <BottomNav />
-      </div>
-    </Router>
+    <div className="app">
+      {!isAuthRoute && <Sidebar />}
+      <main className="main-content">{children}</main>
+    </div>
   );
 }
 
-export default App;
+// ---------- App ----------
+export default function App() {
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          {/* Auth routes (public-only) */}
+          <Route
+            path="/auth/signup"
+            element={
+              <PublicOnly>
+                <Signup />
+              </PublicOnly>
+            }
+          />
+          <Route
+            path="/auth/login"
+            element={
+              <PublicOnly>
+                <Login />
+              </PublicOnly>
+            }
+          />
+
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <HomeScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <RequireAuth>
+                <HomeScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <RequireAuth>
+                <MapScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/pair"
+            element={
+              <RequireAuth>
+                <PairScreen />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/people"
+            element={
+              <RequireAuth>
+                <PeopleScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/voice"
+            element={
+              <RequireAuth>
+                <VoiceScreen />
+              </RequireAuth>
+            }
+          />
+
+          {/* Catch-all → signup if logged out, else home */}
+          <Route
+            path="*"
+            element={
+              getCurrentUser() ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Navigate to="/auth/signup" replace />
+              )
+            }
+          />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
