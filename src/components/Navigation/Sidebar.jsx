@@ -14,6 +14,21 @@ const Sidebar = () => {
     setIsOpen(false);
   };
 
+  const handleSignOut = () => {
+    // Clear any authentication tokens or user data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
+    
+    // Close sidebar if open
+    setIsOpen(false);
+    
+    // Redirect to landing page
+    // Note: Replace '/landing' with actual landing page route when it exists
+    // For now, redirecting to '/' or '/login' to prevent app failure
+    window.location.href = '/';
+  };
+
   const navItems = [
     { path: '/home', label: 'Home', icon: '/icons/home.png' },
     { path: '/map', label: 'Map', icon: '/icons/map.png' },
@@ -67,6 +82,14 @@ const Sidebar = () => {
             </Link>
           ))}
         </nav>
+        
+        <button
+          className="sign-out-button"
+          onClick={handleSignOut}
+          aria-label="Sign out"
+        >
+          Sign Out
+        </button>
       </aside>
     </>
   );
