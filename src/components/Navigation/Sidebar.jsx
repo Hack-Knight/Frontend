@@ -19,6 +19,7 @@ const Sidebar = () => {
     { path: '/map', label: 'Map', icon: '/assets/icons/map.png' },
     { path: '/people', label: 'People', icon: '/assets/icons/people.png' },
     { path: '/voice', label: 'Voice', icon: '/assets/icons/mic.png' },
+    { path: '/agent-voice', label: 'Agent Voice', icon: '/assets/icons/mic.png' },
   ];
 
   return (

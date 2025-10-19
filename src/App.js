@@ -7,6 +7,7 @@ import HomeScreen from './components/Screens/HomeScreen';
 import MapScreen from './components/Screens/MapScreen';
 import PeopleScreen from './components/Screens/PeopleScreen';
 import VoiceScreen from './components/Screens/VoiceScreen';
+import VoiceAgent from './components/Screens/VoiceAgent';
 
 // Import navigation components
 import Sidebar from './components/Navigation/Sidebar';
@@ -23,6 +24,8 @@ function App() {
             <Route path="/map" element={<MapScreen />} />
             <Route path="/people" element={<PeopleScreen />} />
             <Route path="/voice" element={<VoiceScreen />} />
+            {/* ElevenLabs WebRTC Agent route */}
+            <Route path="/agent-voice" element={<VoiceAgent />} />
           </Routes>
         </main>
       </div>

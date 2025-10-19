@@ -1,0 +1,115 @@
+/* filepath: /Users/din/Documents/Frontend/src/components/Screens/VoiceButton.css */
+
+.voice-button-screen {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.ai-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #222;
+}
+
+.ai-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.ai-voice-btn {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: radial-gradient(circle at 30% 30%, #ffb86b, #ff7e5f);
+  color: white;
+  box-shadow: 0 10px 30px rgba(255, 126, 95, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.ai-voice-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(255, 126, 95, 0.45);
+}
+
+.ai-voice-btn:active {
+  transform: scale(0.98);
+}
+
+.ai-voice-btn:focus-visible {
+  outline: 3px solid #6a8dff;
+  outline-offset: 4px;
+}
+
+.ai-voice-btn .btn-emoji {
+  font-size: 2.2rem;
+}
+
+.ai-voice-btn .btn-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.ai-voice-btn.listening {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #e63946);
+  box-shadow: 0 12px 36px rgba(230, 57, 70, 0.5);
+}
+
+.ai-transcript {
+  margin-top: 22px;
+  max-width: 680px;
+  color: #333;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.ai-transcript .label {
+  font-weight: 700;
+  color: #444;
+}
+
+.ai-alert {
+  margin-top: 14px;
+  color: #856404;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.ai-alert.error {
+  color: #842029;
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+}
+
+.ai-hint {
+  margin-top: 14px;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .ai-title { font-size: 1.6rem; }
+  .ai-subtitle { font-size: 0.95rem; }
+  .ai-voice-btn { width: 180px; height: 180px; }
+  .ai-voice-btn .btn-text { font-size: 1.05rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-voice-btn { transition: none; }
+}
