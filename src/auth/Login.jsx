@@ -1,54 +1,82 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInLocal } from "../services/localAuth";
+import "./Auth.css";
 
 export default function Login() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setErr("");
+    setLoading(true);
+
     try {
-      signInLocal({ email, password: pw });
+      await signInLocal({ email, password: pw });
       nav("/"); // go to app
     } catch (e) {
       setErr(e?.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="screen-container" style={{ display: "grid", placeItems: "center" }}>
-      <form onSubmit={submit} className="card form" style={{ maxWidth: 420, width: "100%" }}>
-        <h2>Log in</h2>
+    <div className="auth-container">
+      <form onSubmit={submit} className="auth-form">
+        <div className="auth-brand">
+          <div className="auth-brand-icon">
+            <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="SafeCircle logo" className="sidebar-logo" />
+          </div>
+          <h2>Welcome Back</h2>
+          <p className="subtitle">Sign in to your SafeCircle account</p>
+        </div>
 
-        {err && <div className="alert alert-error">{err}</div>}
+        {err && <div className="auth-alert error">{err}</div>}
 
-        <input
-          required
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div className="auth-input-group">
+          <label htmlFor="email">Email Address</label>
+          <input
+            id="email"
+            className="auth-input"
+            required
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+          />
+        </div>
 
-        <input
-          required
-          type="password"
-          placeholder="Password"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-        />
+        <div className="auth-input-group">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            className="auth-input"
+            required
+            type="password"
+            placeholder="Enter your password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            disabled={loading}
+          />
+        </div>
 
-        <button className="btn btn-primary" style={{ marginTop: 12 }}>
-          Log in
+        <button 
+          type="submit" 
+          className={`auth-submit-btn ${loading ? 'loading' : ''}`}
+          disabled={loading}
+        >
+          {loading ? '' : 'Log in'}
         </button>
 
-        <div style={{ marginTop: 12, textAlign: "center" }}>
+        <div className="auth-footer">
           New here?{" "}
-          <Link to="/auth/signup" className="link">
+          <Link to="/auth/signup">
             Create an account
           </Link>
         </div>
