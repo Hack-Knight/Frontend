@@ -40,7 +40,7 @@ const VoiceAgent = ({ inline = false, showHeader = !inline }) => {
 
   const content = (
     <div className={`voice-button-screen${inline ? ' inline' : ''}`}>
-      {showHeader && <div className="ai-title">AI Voice</div>}
+      {showHeader && <div className="ai-title">Talk to Sophie</div>}
       {showHeader && <div className="ai-subtitle">Hands‑free assistance</div>}
 
       <button

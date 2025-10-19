@@ -1,6 +1,14 @@
 // src/components/Screens/MapScreen.jsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Circle, Popup, Polyline, useMapEvents } from "react-leaflet";
+import { 
+  MapContainer, 
+  TileLayer, 
+  Marker, 
+  Circle, 
+  Popup, 
+  Polyline, 
+  useMapEvents 
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapScreen.css";
@@ -76,7 +84,6 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
 
   // Patient zone (one per patient)
   const [zone, setZoneState] = useState(null); // {latitude,longitude,radius}
-  const [editing, setEditing] = useState(false);
 
   // Patient live loc (caregiver view)
   const [patientLoc, setPatientLoc] = useState(null);
@@ -179,7 +186,6 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
     const next = { latitude: lat, longitude: lng, radius: zone?.radius ?? 150 };
     setZone(patientId, next);
     setZoneState(next);
-    setEditing(true);
   }, [isCaregiver, patientId, zone?.radius]);
 
   const updateRadius = (r) => {
@@ -193,7 +199,6 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
     if (!isCaregiver || !patientId) return;
     deleteZone(patientId);
     setZoneState(null);
-    setEditing(false);
   };
 
   // --- Map utilities
@@ -341,7 +346,6 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
             <label style={{ width: 120 }}>Radius: {zone.radius} m</label>
             <input type="range" min="50" max="1000" step="10" value={zone.radius}
                    onChange={(e)=>updateRadius(Number(e.target.value))} style={{ flex: 1 }} />
-            <button className="btn btn-ghost" onClick={()=>setEditing(false)}>Done</button>
           </div>
         </div>
       )}
