@@ -12,7 +12,7 @@ import "./App.css";
 import HomeScreen from "./components/Screens/HomeScreen";
 import MapScreen from "./components/Screens/MapScreen";
 import PeopleScreen from "./components/Screens/PeopleScreen";
-import VoiceScreen from "./components/Screens/VoiceScreen";
+import VoiceScreen from "./components/Screens/VoiceAgent";
 import PairScreen from "./components/Screens/PairScreen";
 
 // Auth pages

@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import './HomeScreen.css';
+import MapScreen from "./MapScreen";
+import { getCurrentUser } from "../../services/localAuth";
+
 
 const HomeScreen = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [safeZoneStatus, setSafeZoneStatus] = useState('unknown');
+   const [me, setMe] = useState(null);
+
+
+   useEffect(() => {
+    setMe(getCurrentUser());
+  }, []);
 
   useEffect(() => {
     // Update time every second
@@ -90,6 +99,12 @@ const HomeScreen = () => {
             </div>
           )}
         </div>
+         {/* Only caregivers see MapScreen */}
+        {me?.role === "caregiver" && (
+          <div className="map-wrapper">
+            <MapScreen />
+          </div>
+        )}
       </div>
     </div>
   );
