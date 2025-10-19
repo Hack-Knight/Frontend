@@ -11,11 +11,8 @@ import {
 } from "react-native";
 
 export default function PeopleScreen() {
-  const [contacts, setContacts] = useState([
-    { },    
-    {  },    
-    {  }, 
-  ]);
+  const [contacts, setContacts] = useState([]);
+
 
   const callNumber = async (phone) => {
     try {
