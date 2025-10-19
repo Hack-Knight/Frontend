@@ -165,11 +165,18 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
   useEffect(() => {
     if (!isCaregiver || alerts.length === 0) return;
     const newest = alerts[0];
-    if (!newest?.read && Notification?.permission === "granted" && newest.type === "GEOFENCE_EXIT") {
-      const dist = newest.payload?.distance;
-      new Notification("Patient left safe zone", { body: dist ? `~${dist}m away` : undefined });
-      markAlertsRead(me.id);
-      setAlerts(listAlerts(me.id));
+    if (!newest?.read && Notification?.permission === "granted") {
+      if (newest.type === "GEOFENCE_EXIT") {
+        const dist = newest.payload?.distance;
+        new Notification("Patient left safe zone", { body: dist ? `~${dist}m away` : undefined });
+        markAlertsRead(me.id);
+        setAlerts(listAlerts(me.id));
+      } else if (newest.type === "SOS") {
+        const msg = newest.payload?.message || "Patient requested help";
+        new Notification("SOS from patient", { body: msg });
+        markAlertsRead(me.id);
+        setAlerts(listAlerts(me.id));
+      }
     }
   }, [alerts, isCaregiver, me?.id]);
 
