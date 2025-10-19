@@ -13,6 +13,7 @@ import HomeScreen from "./components/Screens/HomeScreen";
 import MapScreen from "./components/Screens/MapScreen";
 import PeopleScreen from "./components/Screens/PeopleScreen";
 import VoiceScreen from "./components/Screens/VoiceScreen";
+import PairScreen from "./components/Screens/PairScreen";
 
 // Auth pages
 import Signup from "./auth/Signup";
@@ -97,6 +98,15 @@ export default function App() {
             }
           />
           <Route
+            path="/pair"
+            element={
+              <RequireAuth>
+                <PairScreen />
+              </RequireAuth>
+            }
+          />
+
+          <Route
             path="/people"
             element={
               <RequireAuth>
@@ -117,7 +127,11 @@ export default function App() {
           <Route
             path="*"
             element={
-              getCurrentUser() ? <Navigate to="/" replace /> : <Navigate to="/auth/signup" replace />
+              getCurrentUser() ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Navigate to="/auth/signup" replace />
+              )
             }
           />
         </Routes>

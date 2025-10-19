@@ -48,3 +48,10 @@ export function getCurrentUser() {
 export function signOutLocal() {
   localStorage.removeItem(CURR_KEY);
 }
+// --- find user by email ---
+export function getUserByEmail(email) {
+  const db = getDB();
+  return db.users.find(
+    (u) => u.email.toLowerCase() === String(email).toLowerCase()
+  ) || null;
+}
