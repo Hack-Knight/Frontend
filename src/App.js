@@ -18,6 +18,7 @@ import PairScreen from "./components/Screens/PairScreen";
 // Auth pages
 import Signup from "./auth/Signup";
 import Login from "./auth/Login";
+import Logout from "./auth/Logout";
 
 // Navigation
 import Sidebar from "./components/Navigation/Sidebar";
@@ -122,6 +123,7 @@ export default function App() {
               </RequireAuth>
             }
           />
+          <Route path="/auth/logout" element={<Logout />} />
 
           {/* Catch-all → signup if logged out, else home */}
           <Route
