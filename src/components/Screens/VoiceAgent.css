@@ -10,6 +10,18 @@
   text-align: center;
 }
 
+/* Inline embedding adjustments */
+.voice-button-screen.inline {
+  min-height: 0;
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.voice-button-screen.inline .ai-hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
 .ai-title {
   font-size: 2rem;
   font-weight: 700;

@@ -5,6 +5,7 @@ import './Sidebar.css';
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const base = process.env.PUBLIC_URL || '';
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -15,11 +16,9 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { path: '/home', label: 'Home', icon: '/assets/icons/home.png' },
-    { path: '/map', label: 'Map', icon: '/assets/icons/map.png' },
-    { path: '/people', label: 'People', icon: '/assets/icons/people.png' },
-    { path: '/voice', label: 'Voice', icon: '/assets/icons/mic.png' },
-    { path: '/agent-voice', label: 'Agent Voice', icon: '/assets/icons/mic.png' },
+    { path: '/', label: 'Home', icon: `${base}/icons/home.png` },
+    { path: '/map', label: 'Map', icon: `${base}/icons/map.png` },
+    { path: '/people', label: 'People', icon: `${base}/icons/people.png` },
   ];
 
   return (
@@ -43,7 +42,7 @@ const Sidebar = () => {
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <img 
-            src="/assets/logo.png" 
+            src={`${base}/logo.png`} 
             alt="SafeCircle Logo" 
             className="sidebar-logo"
           />

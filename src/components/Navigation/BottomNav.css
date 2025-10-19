@@ -1,0 +1,57 @@
+/* BottomNav.css - fixed bottom navigation styles */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 68px;
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1002;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #333;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.bottom-nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+  opacity: 0.85;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: scale(1.05);
+  filter: drop-shadow(0 2px 6px rgba(102, 126, 234, 0.25));
+  opacity: 1;
+}
+
+.bottom-nav-item.active,
+.bottom-nav-item:focus {
+  color: #4f46e5;
+}
+
+.bottom-nav-label {
+  display: none; /* icon-only for compact layout */
+}
+
+/* Hide bottom nav on tablet/desktop. Sidebar covers those sizes */
+@media (min-width: 768px) {
+  .bottom-nav { display: none; }
+}

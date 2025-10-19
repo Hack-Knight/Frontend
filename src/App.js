@@ -6,11 +6,11 @@ import './App.css';
 import HomeScreen from './components/Screens/HomeScreen';
 import MapScreen from './components/Screens/MapScreen';
 import PeopleScreen from './components/Screens/PeopleScreen';
-import VoiceScreen from './components/Screens/VoiceScreen';
-import VoiceAgent from './components/Screens/VoiceAgent';
+import LandingPage from './components/Screens/LandingPage';
 
 // Import navigation components
 import Sidebar from './components/Navigation/Sidebar';
+import BottomNav from './components/Navigation/BottomNav';
 
 function App() {
   return (
@@ -19,15 +19,14 @@ function App() {
         <Sidebar />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<HomeScreen />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<HomeScreen />} />
             <Route path="/map" element={<MapScreen />} />
             <Route path="/people" element={<PeopleScreen />} />
-            <Route path="/voice" element={<VoiceScreen />} />
-            {/* ElevenLabs WebRTC Agent route */}
-            <Route path="/agent-voice" element={<VoiceAgent />} />
           </Routes>
         </main>
+        {/* Fixed mobile bottom navigation */}
+        <BottomNav />
       </div>
     </Router>
   );

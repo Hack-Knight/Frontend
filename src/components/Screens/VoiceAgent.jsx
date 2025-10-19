@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { useConversation } from '@elevenlabs/react';
-import './VoiceButton.css';
+import './VoiceAgent.css';
 
 const AGENT_ID = 'agent_4501k7xa0jn2fgkrvnrtfwwst6hq';
 
-const VoiceAgent = () => {
+const VoiceAgent = ({ inline = false, showHeader = !inline }) => {
   const [error, setError] = useState('');
   const [isStarting, setIsStarting] = useState(false);
 
@@ -39,30 +39,36 @@ const VoiceAgent = () => {
 
   const isActive = conversation.status === 'connected';
 
+  const content = (
+    <div className={`voice-button-screen${inline ? ' inline' : ''}`}>
+      {showHeader && <div className="ai-title">AI Voice (WebRTC)</div>}
+      {showHeader && <div className="ai-subtitle">Live conversation via ElevenLabs Agent</div>}
+
+      <button
+        className={`ai-voice-btn ${isActive || isStarting ? 'listening' : ''}`}
+        onClick={isActive ? stop : start}
+        aria-pressed={isActive}
+        aria-label={isActive ? 'Stop call' : 'Start call'}
+        disabled={isStarting}
+      >
+        <span className="btn-emoji">🎧</span>
+        <span className="btn-text">{isActive ? 'Stop' : (isStarting ? 'Connecting…' : 'Start')}</span>
+      </button>
+
+      {error && (
+        <div className="ai-alert error" role="alert">{error}</div>
+      )}
+
+      <div className="ai-hint">Status: {conversation.status || 'disconnected'}</div>
+      <div className="ai-hint">Tap Start and allow mic. Tap Stop to end.</div>
+    </div>
+  );
+
+  if (inline) return content;
+
   return (
     <div className="screen-container">
-      <div className="voice-button-screen">
-        <div className="ai-title">AI Voice (WebRTC)</div>
-        <div className="ai-subtitle">Live conversation via ElevenLabs Agent</div>
-
-        <button
-          className={`ai-voice-btn ${isActive || isStarting ? 'listening' : ''}`}
-          onClick={isActive ? stop : start}
-          aria-pressed={isActive}
-          aria-label={isActive ? 'Stop call' : 'Start call'}
-          disabled={isStarting}
-        >
-          <span className="btn-emoji">🎧</span>
-          <span className="btn-text">{isActive ? 'Stop' : (isStarting ? 'Connecting…' : 'Start')}</span>
-        </button>
-
-        {error && (
-          <div className="ai-alert error" role="alert">{error}</div>
-        )}
-
-        <div className="ai-hint">Status: {conversation.status || 'disconnected'}</div>
-        <div className="ai-hint">Tap Start and allow mic. Tap Stop to end.</div>
-      </div>
+      {content}
     </div>
   );
 };
