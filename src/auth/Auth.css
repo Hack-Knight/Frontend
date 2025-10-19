@@ -1,13 +1,17 @@
 /* Auth Screen Container */
 .auth-container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 8px;
-  position: relative;
-  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -33,13 +37,15 @@
     0 20px 60px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   max-width: 330px;
+  max-height: 90vh;
   width: calc(100% - 16px);
   position: relative;
   z-index: 1;
   animation: slideUp 0.5s ease-out;
-  margin: 138px auto 8px auto;
+  margin: 0 auto;
   box-sizing: border-box;
   left: -35px;
+  overflow-y: auto;
 }
 
 @keyframes slideUp {

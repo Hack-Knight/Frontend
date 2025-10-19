@@ -122,11 +122,19 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy };
-        setMyLoc(coords);
+        
+        // Only update if position changed significantly (>5 meters) to reduce flickering
+        setMyLoc(prev => {
+          if (!prev) return coords;
+          const distance = haversineM(prev.latitude, prev.longitude, coords.latitude, coords.longitude);
+          if (distance < 5) return prev; // Don't update for small movements
+          return coords;
+        });
+        
         if (me?.id) saveLocation(me.id, coords); // persist my current position
       },
       (err)=> setGeoError(err?.message || "Unable to get location"),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 5000 } // Changed to false and added maximumAge to reduce updates
     );
     return () => navigator.geolocation.clearWatch(id);
   }, [me?.id]);
@@ -134,10 +142,30 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
   // --- Caregiver: poll patient location + alerts
   useEffect(() => {
     if (!isCaregiver || !patientId) return;
-    let t = setInterval(() => {
-      setPatientLoc(getLocation(patientId));
-      setAlerts(listAlerts(me.id));
-    }, 1500);
+    
+    // Initial fetch
+    const updateData = () => {
+      const newPatientLoc = getLocation(patientId);
+      const newAlerts = listAlerts(me.id);
+      
+      // Only update if data actually changed to prevent unnecessary re-renders
+      setPatientLoc(prev => {
+        if (!prev && !newPatientLoc) return prev;
+        if (!prev || !newPatientLoc) return newPatientLoc;
+        if (prev.latitude === newPatientLoc.latitude && prev.longitude === newPatientLoc.longitude) {
+          return prev;
+        }
+        return newPatientLoc;
+      });
+      
+      setAlerts(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(newAlerts)) return prev;
+        return newAlerts;
+      });
+    };
+    
+    updateData();
+    const t = setInterval(updateData, 3000); // Increased to 3 seconds to reduce flickering
     return () => clearInterval(t);
   }, [isCaregiver, patientId, me?.id]);
 
@@ -274,7 +302,35 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
       )}
       {!hideBanner && banner && (
         <div className={`alert alert-${banner.type}`}>
-          {banner.text}
+          <span className="alert-text">{banner.text}</span>
+          {isCaregiver && !zone && patientLoc && (
+            <button 
+              className="set-zone-btn" 
+              onClick={() => addOrMoveZone({ lat: patientLoc.latitude, lng: patientLoc.longitude })}
+              title="Set safe zone at patient location"
+            >
+              Set Zone
+            </button>
+          )}
+          {isCaregiver && zone && (
+            <div className="radius-controls">
+              <button 
+                className="radius-btn radius-btn-minus" 
+                onClick={() => updateRadius(Math.max(50, zone.radius - 50))}
+                title="Decrease radius"
+              >
+                −
+              </button>
+              <span className="radius-value">{zone.radius}m</span>
+              <button 
+                className="radius-btn radius-btn-plus" 
+                onClick={() => updateRadius(Math.min(1000, zone.radius + 50))}
+                title="Increase radius"
+              >
+                +
+              </button>
+            </div>
+          )}
         </div>
       )}
       {!hideErrors && geoError && <div className="alert alert-error">{geoError}</div>}
@@ -338,17 +394,7 @@ export default function MapScreen({ hideHeader = false, headerTitle = 'Safety Ma
         </MapContainer>
       </div>
 
-      {/* CAREGIVER: radius slider */}
-      {isCaregiver && zone && (
-        <div className="card editor">
-          <div className="row"><strong>Edit Safe Zone</strong></div>
-          <div className="row">
-            <label style={{ width: 120 }}>Radius: {zone.radius} m</label>
-            <input type="range" min="50" max="1000" step="10" value={zone.radius}
-                   onChange={(e)=>updateRadius(Number(e.target.value))} style={{ flex: 1 }} />
-          </div>
-        </div>
-      )}
+      {/* CAREGIVER: radius controls moved to banner - this section can be removed */}
 
       {/* Removed Alerts UI per caregiver design */}
 

@@ -55,7 +55,7 @@ export default function SOSButton() {
 
   const wrapperStyle = {
     position: "fixed",
-    right: 16,
+    right: 81,
     top: "calc(16px + env(safe-area-inset-top))",
     zIndex: 9999,
   };
